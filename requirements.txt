@@ -1,0 +1,22 @@
+# Hardware-in-the-Loop (HIL) Test Framework Requirements
+# Author: mozial
+
+# Core Instrument & Communication Protocols
+pyvisa>=1.14.0
+pyserial>=3.5
+
+# Test Runner & Fixture Orchestration
+pytest>=8.0.0
+pytest-xdist>=3.5.0
+
+# Scientific Computation & Protocol DSP
+numpy>=1.26.0
+scipy>=1.12.0
+pandas>=2.2.0
+
+# Configuration & Data Storage
+pyyaml>=6.0.1
+openpyxl>=3.1.2
+
+# Visualization & Reporting
+matplotlib>=3.8.0

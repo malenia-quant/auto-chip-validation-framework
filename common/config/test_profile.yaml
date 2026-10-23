@@ -1,0 +1,99 @@
+# Test Profile Configuration for Hardware-in-the-Loop (HIL) Test Framework
+# Author: mozial
+
+global:
+  environment: "bench_ft"
+  author: "mozial"
+  sample_shunt_resistor_ohm: 10.03
+  log_level: "INFO"
+  log_dir: "logs"
+
+instruments:
+  generator:
+    model: "DG5072"
+    visa_resource: "USB0::0x1AB1::0x0640::DG5T264700198::INSTR"
+    tcp_host: "192.168.1.101"
+    tcp_port: 5025
+    timeout_ms: 10000
+
+  power_supply:
+    model: "DP2031"
+    visa_resource: "USB0::0x1AB1::0x0E11::DP2A000000000::INSTR"
+    tcp_host: "192.168.1.102"
+    tcp_port: 5555
+    timeout_ms: 5000
+    defaults:
+      ch1_voltage: 5.0
+      ch1_current_limit: 0.200
+      ovp_voltage: 13.5
+      ocp_current: 0.500
+
+  oscilloscope:
+    model: "SDS5054X"
+    visa_resource: "USB0::0xF4EC::0x1008::SDS5XC0X900138::INSTR"
+    tcp_host: "192.168.1.103"
+    tcp_port: 5025
+    timeout_ms: 60000
+    defaults:
+      timebase_scale_s: 0.0005
+      sample_depth: "10M"
+      bandwidth_limit: "20M"
+      probe_ratio: 10
+
+  multimeter:
+    model: "DMM6500"
+    visa_resource: "USB0::0x05E6::0x6500::04480000::INSTR"
+    tcp_host: "192.168.1.104"
+    tcp_port: 5025
+    timeout_ms: 5000
+
+test_limits:
+  supply_voltage_vdd:
+    min: 4.0
+    max: 11.0
+    unit: "V"
+  regulator_vddi:
+    min: 3.13
+    max: 3.47
+    unit: "V"
+  supply_current_static:
+    min: 4.0
+    max: 6.0
+    unit: "mA"
+  sink_current_base:
+    min: 22.0
+    typ: 26.0
+    max: 30.0
+    unit: "mA"
+  sink_rise_time:
+    min: 350.0
+    typ: 503.0
+    max: 600.0
+    unit: "ns"
+  sink_fall_time:
+    min: 350.0
+    typ: 503.0
+    max: 600.0
+    unit: "ns"
+  oscillator_freq:
+    min: 17.13
+    typ: 17.9
+    max: 18.8
+    unit: "MHz"
+  bit_time_tbit:
+    min: 7.6
+    typ: 8.05
+    max: 8.4
+    unit: "us"
+  duty_cycle:
+    min: 49.0
+    typ: 50.0
+    max: 51.0
+    unit: "%"
+
+ucut_cases:
+  v_above_reset: -1.2
+  v_below_reset: -4.0
+  dur_white_zone_us: 6.5
+  dur_mid_zone_us: 2000.0
+  dur_red_right_us: 5000.0

@@ -1,0 +1,5 @@
+# 进入你的脚本所在目录
+cd D:\Trade\pycharm\Programming_design\pz_ft\simple_version\
+
+# 执行打包：生成单文件夹模式，方便产线部署
+pyinstaller --noconfirm --onedir --console --name "PSI5_FT_Tool_mozial" --collect-submodules scipy.signal --hidden-import pyvisa-py "sds5054.py"
