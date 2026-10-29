@@ -8,8 +8,18 @@
 """
 
 import os
+import sys
 import tkinter as tk
 import pytest
+
+_tpms_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _tpms_dir not in sys.path:
+    sys.path.insert(0, _tpms_dir)
+
+# Unload any previously cached conflicting 'gui' from another test package
+if 'gui' in sys.modules and not hasattr(sys.modules['gui'], 'TPMSAppGUI'):
+    del sys.modules['gui']
+
 from gui import TPMSAppGUI, StepIndicator
 
 

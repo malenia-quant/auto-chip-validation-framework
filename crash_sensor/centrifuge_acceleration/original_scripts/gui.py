@@ -172,7 +172,7 @@ class SensorGUI:
 
                 except Exception as file_e:
                     # 局部异常捕获：记录单个文件的错误，跳过该文件，继续循环
-                    error_msg = f"❌ 文件 {input_filename} 处理失败: {str(file_e)}"
+                    error_msg = f"[FAIL] 文件 {input_filename} 处理失败: {str(file_e)}"
                     error_messages.append(error_msg)
                     self.root.after(0, self._print_console, error_msg)
 
@@ -446,12 +446,12 @@ class SensorGUI:
         # 读取txt文件并添加列头
         columns = ['AccX', 'AccY', 'AccZ', 'AccZC', 'GyroX', 'GyroY', 'GyroZ', 'Temperature']
         try:
-            # ✅ 修改读取方式：添加列名参数
+            # [PASS] 修改读取方式：添加列名参数
             df = pd.read_csv(txt_path, sep='\t|,', engine='python', header=None, names=columns)  # 新增names参数
             df.to_csv(csv_path, index=False)
             self._print_console(f"已转换：{os.path.basename(txt_path)}")
 
-            # ✅ 传递正确的列名到绘图方法
+            # [PASS] 传递正确的列名到绘图方法
             self._generate_column_plots(df, csv_path, columns)  # 新增columns参数
         except Exception as e:
             self._print_console(f"转换失败：{txt_path} - {str(e)}")
@@ -468,7 +468,7 @@ class SensorGUI:
         plt.ioff()  # 非交互模式
 
         try:
-            # ✅ 直接使用传入的列名
+            # [PASS] 直接使用传入的列名
             for idx, col_name in enumerate(columns):  # 不再需要过滤Unnamed列
                 plt.figure(figsize=(12, 6))
 
@@ -574,12 +574,12 @@ class SensorGUI:
 
                 # 执行处理
                 processor.process(input_path, output_path)
-                self.thread_safe_print(f"   -> ✅ 成功")
+                self.thread_safe_print(f"   -> [PASS] 成功")
                 success_count += 1
 
             except Exception as e:
                 error_msg = str(e)
-                self.thread_safe_print(f"   -> ❌ 失败: {error_msg}")
+                self.thread_safe_print(f"   -> [FAIL] 失败: {error_msg}")
                 fail_count += 1
 
                 # 记录具体是哪个文件夹失败了
@@ -599,7 +599,7 @@ class SensorGUI:
             report_msg = f"处理完成\n\n成功: {success_count} 个文件夹\n失败: {fail_count} 个文件夹"
 
             if failed_details:
-                report_msg += "\n\n❌ 失败文件夹名单:\n"
+                report_msg += "\n\n[FAIL] 失败文件夹名单:\n"
                 # 如果错误太多，截断显示，避免弹窗超出屏幕
                 if len(failed_details) > 15:
                     report_msg += "\n".join(failed_details[:15])
@@ -655,7 +655,7 @@ class SensorGUI:
             file_ext = os.path.splitext(input_path)[1]
             output_path = os.path.join(output_dir, f"step2_processed{file_ext}")
 
-            # 显示文件导入确认提示 ✅ 新增代码
+            # 显示文件导入确认提示 [PASS] 新增代码
             import_msg = f"成功导入Step1输出文件：\n{os.path.basename(input_path)}"
             messagebox.showinfo("文件已加载", import_msg)
 

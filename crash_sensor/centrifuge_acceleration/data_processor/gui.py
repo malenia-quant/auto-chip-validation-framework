@@ -1,18 +1,15 @@
 """
 CrashSensor 离心机测试数据自动化处理软件 GUI (工业量产版 V2.4)
-- 字体加粗范围严格控制：仅 Tab 标题与日志大标题加粗，其余全部标准粗细
+Author: mozial
+
+严格遵循 ft_production_test (ft_gui_main.py) 视觉与配色规范：
+- 字体规范：Microsoft YaHei UI 11pt，Tab 与 LabelFrame 标题加粗，控制台采用 Consolas 10pt
+- 配色体系：基底中性灰 #f0f0f0，表头与卡片 #e0e0e0，状态指示灯 PASS #4CAF50 / FAIL #F44336
 - 取消默认全屏，窗口自适应内容长宽 (1060x680)
-- 顶部标题精简，去除 "量产版V2.4"
 - 流水线全部居中对齐，指示灯最右侧严格同列对齐，圆圈放大为 16px
-- 文件地址框宽度减半 (width=24)
-- 补测界面移除 "未载入复测名单"，上下地址框严格对齐
-- 3合1 CAN 盒智能按钮，去除多余状态提示标签；未连接 CAN 盒严禁启动采集
-- 采集过程每 2s 实时抽样监控日志
-- 停止采集平稳退出加速 (关闭 stdin，消除 join 阻塞)
+- 3合1 CAN 盒智能按钮，未连接 CAN 盒严禁启动采集
 - 按钮按工艺流自然重编：Axis1 采集为 ①，Axis1 解析为 ②，Axis2 采集为 ③，Axis2 解析为 ④，合流为 ⑤
 - 离心机 1 执行 Axis1/2 处理后立即导出 ProcessedData1 与 IdCheck 两份规范文件
-- 所有按钮高度与垂直内边距统一 (padding=(8, 3))
-- 架构调整：Normal_Lot 与 Rework_Lot 文件夹统一放置在同日文件夹 daily_dir 下
 """
 
 import os
@@ -43,11 +40,11 @@ from processor.result_consolidator import ResultConsolidator, DataMerger
 from processor.can_collector import ZLGCanCollector, CanCaptureError
 
 
-# ================= 全局统一字体与样式常量 (10号字体 10pt) =================
+# ================= 全局统一字体与样式常量 (参考 ft_gui_main.py 11pt 规范) =================
 FONT_FAMILY = "Microsoft YaHei UI"
-FONT_BASE = (FONT_FAMILY, 10)            # 标准文字与普通按钮
-FONT_BOLD = (FONT_FAMILY, 10, "bold")     # 仅日志大标题加粗
-FONT_TAB = (FONT_FAMILY, 10)             # Tab 切换标题改回 10pt (不加粗，大小一致)
+FONT_BASE = (FONT_FAMILY, 11)            # 标准文字与普通按钮
+FONT_BOLD = (FONT_FAMILY, 11, "bold")     # 仅日志大标题加粗
+FONT_TAB = (FONT_FAMILY, 11)             # Tab 切换标题
 FONT_CONSOLE = ("Consolas", 10)
 
 
@@ -216,12 +213,12 @@ class StepIndicator(ttk.Frame):
         self.current_state = state
         self.canvas.delete("all")
         color_map = {
-            "pending": ("#B0BEC5", "#78909C"),    # 待机灰
-            "running": ("#1976D2", "#0D47A1"),    # 进行中蓝
-            "success": ("#2E7D32", "#1B5E20"),    # 完成绿
-            "error":   ("#C62828", "#B71C1C"),    # 异常暗红
+            "pending": ("#9E9E9E", "#757575"),    # 待机灰 (ft_gui_main 规范)
+            "running": ("#2196F3", "#1976D2"),    # 进行中蓝
+            "success": ("#4CAF50", "#388E3C"),    # 完成绿 (ft_gui_main 规范)
+            "error":   ("#F44336", "#D32F2F"),    # 异常红 (ft_gui_main 规范)
         }
-        fill_c, outline_c = color_map.get(state, ("#B0BEC5", "#78909C"))
+        fill_c, outline_c = color_map.get(state, ("#9E9E9E", "#757575"))
         # 圆圈尺寸放大为 (3, 3, 19, 19)
         self.canvas.create_oval(3, 3, 19, 19, fill=fill_c, outline=outline_c, width=2)
         if text:
@@ -310,7 +307,7 @@ class ChannelMatrixWidget(ttk.LabelFrame):
         top_bar = ttk.Frame(self)
         top_bar.pack(fill=tk.X, padx=6, pady=(3, 2))
         ttk.Label(top_bar, text="当前数据: ", font=FONT_BOLD).pack(side=tk.LEFT)
-        self.lbl_data_name = ttk.Label(top_bar, text="[待机未运行]", font=FONT_BOLD, foreground="#0D47A1")
+        self.lbl_data_name = ttk.Label(top_bar, text="[待机未运行]", font=FONT_BOLD, foreground="#1976D2")
         self.lbl_data_name.pack(side=tk.LEFT)
 
         # 矩阵表头与网格 (固定紧凑宽度，不拉伸)
@@ -451,7 +448,7 @@ class DailyYieldWidget(ttk.LabelFrame):
         self.lbl_fail = ttk.Label(box, text="当日累计 Fail: 0 pcs", font=FONT_BOLD, foreground="#C62828")
         self.lbl_fail.grid(row=0, column=1, sticky=tk.W, padx=8, pady=2)
 
-        self.lbl_yield = ttk.Label(box, text="当日综合良率: 0.0%", font=FONT_BOLD, foreground="#0D47A1")
+        self.lbl_yield = ttk.Label(box, text="当日综合良率: 0.0%", font=FONT_BOLD, foreground="#1976D2")
         self.lbl_yield.grid(row=1, column=0, sticky=tk.W, padx=4, pady=2)
 
         self.lbl_file = ttk.Label(box, text="断点记录: 待机", font=("Microsoft YaHei UI", 8), foreground="#78909C")
@@ -640,8 +637,8 @@ class CentrifugeGUI:
         style.configure("TNotebook.Tab", font=FONT_BOLD, padding=(14, 5))  # Tab 标题文字加粗 (需求 4)
         style.map(
             "TNotebook.Tab",
-            background=[("selected", "#FFFFFF"), ("active", "#E1F5FE"), ("!selected", "#F0F4F8")],
-            foreground=[("selected", "#0D47A1"), ("active", "#1565C0"), ("!selected", "#37474F")],
+            background=[("selected", "#FFFFFF"), ("active", "#E0E0E0"), ("!selected", "#E0E0E0")],
+            foreground=[("selected", "#1976D2"), ("active", "#212121"), ("!selected", "#616161")],
         )
 
     def _build_ui(self):

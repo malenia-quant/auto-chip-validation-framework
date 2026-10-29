@@ -43,7 +43,13 @@ crash_sensor/
 │   │   └── repair_20260517_rms.py      # 历史测试数据 RMS 补充计算与修复脚本
 │   └── simple_version/        # 万用表静态电流与示波器基础测量脚本
 │
-└── zlgcan_file/               # 【模块 6：周立功 ZLG CAN/CAN-FD 通信底层】(供应商 SDK 保持原样)
+├── basic_centrifuge/          # 【模块 6：离心机基础数据处理与传感器响应分析】(精简两步法分析套件)
+│   ├── gui.py                 # 两步法交互界面 (Step1 原始拆分 / Step2 阶梯与性能评定 / TXT批量转换)
+│   ├── sensor_processor1.py   # Step 1: 原始测试数据解码清洗、补码换算与通道分组
+│   ├── sensor_processor2.py   # Step 2: 卷积滤波、正负阈值双边沿捕获、阶梯图合成与非线性度/RMS噪声评定
+│   └── device_code_scan.py    # CG904 碰撞传感器批量测试 CAN 载荷与芯片编号/生产日期解析
+│
+└── zlgcan_file/               # 【模块 7：周立功 ZLG CAN/CAN-FD 通信底层】(供应商 SDK 保持原样)
     ├── zlgcan_python_251211/  # 官方驱动 DLL 与 Python 绑定 (zlgcan.py, kerneldlls)
     ├── zcanpro_canfd200u.py   # USBCANFD-200U 纯读采集工具 (ISO CAN-FD 1M/2M，使能 120Ω 终端电阻)
     └── pz_zero_bias.py        # 传感器零偏 (Zero Bias) 批量统计与绘图
@@ -111,4 +117,14 @@ python main_controller_simple.py
 ```powershell
 cd D:\project_momo\auto-chip-validation-framework\crash_sensor\zlgcan_file
 python zcanpro_canfd200u.py
+```
+
+### 3.7 启动离心机基础数据处理与传感器响应分析 (basic_centrifuge)
+```powershell
+cd D:\project_momo\auto-chip-validation-framework\crash_sensor\basic_centrifuge
+# 启动两步法图形化分析程序 (Step1清洗拆分 + Step2阶梯/非线性度/RMS噪声)
+python gui.py
+
+# 或运行 CG904 批量测试器件码与芯片编号/生产日期解析
+python device_code_scan.py
 ```

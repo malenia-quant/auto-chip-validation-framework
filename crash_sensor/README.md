@@ -43,7 +43,13 @@ crash_sensor/
 │   │   └── repair_20260517_rms.py      # Historical dataset repair & RMS calculation
 │   └── simple_version/        # Standalone DMM and oscilloscope measurement scripts
 │
-└── zlgcan_file/               # [Module 6: ZLG CAN / CAN-FD Communications] (Official SDK kept intact)
+├── basic_centrifuge/          # [Module 6: Basic Centrifuge Processing & Sensor Analytics]
+│   ├── gui.py                 # Two-step interactive desktop app (Step1 split / Step2 plateau & performance / TXT batch)
+│   ├── sensor_processor1.py   # Step 1: Raw test data decoding, two's complement conversion & channel grouping
+│   ├── sensor_processor2.py   # Step 2: Convolution filtering, dual-threshold edge detection & non-linearity/RMS noise
+│   └── device_code_scan.py    # CG904 batch test CAN payload decoding & chip ID / production date calculation
+│
+└── zlgcan_file/               # [Module 7: ZLG CAN / CAN-FD Communications] (Official SDK kept intact)
     ├── zlgcan_python_251211/  # Vendor DLL drivers and examples (zlgcan.py, kerneldlls)
     ├── zcanpro_canfd200u.py   # USBCANFD-200U lightweight logger (ISO CAN-FD 1M/2M, 120-ohm enabled)
     └── pz_zero_bias.py        # Zero bias batch analytics & chart generation
@@ -97,4 +103,12 @@ python main_controller_simple.py
 # 6. Run CAN-FD 200U Logger
 cd D:\project_momo\auto-chip-validation-framework\crash_sensor\zlgcan_file
 python zcanpro_canfd200u.py
+
+# 7. Launch Basic Centrifuge Processing & Analytics (basic_centrifuge)
+cd D:\project_momo\auto-chip-validation-framework\crash_sensor\basic_centrifuge
+# Launch two-step GUI (Step 1 raw split + Step 2 plateau/non-linearity/RMS)
+python gui.py
+
+# Or run CG904 batch CAN payload decoding & chip ID / date parser
+python device_code_scan.py
 ```

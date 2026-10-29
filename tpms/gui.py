@@ -1,11 +1,12 @@
-"""TPMS 车型打标与全基地数据汇总软件 GUI
+"""
+TPMS 车型打标与全基地数据汇总软件 GUI
+Author: mozial
 
-严格遵循 ft_centrifuge 视觉与配色规范：
-- 字体规范：Microsoft YaHei UI 10pt，Tab 与 LabelFrame 标题加粗，控制台采用 Consolas 10pt
+严格遵循 ft_production_test (ft_gui_main.py) 工业级视觉与配色规范：
+- 字体规范：Microsoft YaHei UI 11pt，LabelFrame 标题加粗，控制台采用 Consolas 10pt
 - 配色体系：
-  - 工业深蓝主色：#0D47A1，高亮浅蓝：#E1F5FE，选中文字：#0D47A1
-  - 未选浅灰：#F0F4F8，文本板岩灰：#37474F / #263238
-  - 状态指示灯：待执行 #B0BEC5 / #78909C，运行中 #1976D2 / #0D47A1，成功 #2E7D32 / #1B5E20，失败 #C62828 / #B71C1C
+  - 工业基底中性灰：#f0f0f0，卡片与表头浅灰：#e0e0e0，边框与未激活：#9E9E9E
+  - 状态指示灯：待执行 #9E9E9E，运行中 #2196F3，成功/PASS #4CAF50，失败/FAIL #F44336
 - 核心功能：
   1. 车型分类规范与国家列表管理
   2. 单基地月计划批量打标处理（生成 *_processed.xlsx，表尾追加“配置”列）
@@ -52,16 +53,16 @@ def get_resource_dir() -> str:
         return getattr(sys, "_MEIPASS")
     return os.path.dirname(os.path.abspath(__file__))
 
-# ================= 全局统一字体与样式常量 (10号字体 10pt) =================
+# ================= 全局统一字体与样式常量 (参考 ft_gui_main.py 11pt 规范) =================
 FONT_FAMILY = "Microsoft YaHei UI"
-FONT_BASE = (FONT_FAMILY, 10)
-FONT_BOLD = (FONT_FAMILY, 10, "bold")
-FONT_TITLE = (FONT_FAMILY, 12, "bold")
+FONT_BASE = (FONT_FAMILY, 11)
+FONT_BOLD = (FONT_FAMILY, 11, "bold")
+FONT_TITLE = (FONT_FAMILY, 13, "bold")
 FONT_CONSOLE = (FONT_FAMILY, 10)
 
 
 class StepIndicator(ttk.Frame):
-    """流水线步骤指示灯组件（严格沿用 ft_centrifuge 圆形指示灯样式）"""
+    """流水线步骤指示灯组件（严格对齐 ft_gui_main 调色板规范）"""
 
     def __init__(self, parent, initial_text="待执行"):
         super().__init__(parent)
@@ -76,12 +77,12 @@ class StepIndicator(ttk.Frame):
         self.current_state = state
         self.canvas.delete("all")
         color_map = {
-            "pending": ("#B0BEC5", "#78909C"),  # 待机灰
-            "running": ("#1976D2", "#0D47A1"),  # 进行中蓝
-            "success": ("#2E7D32", "#1B5E20"),  # 完成绿
-            "error":   ("#C62828", "#B71C1C"),  # 异常暗红
+            "pending": ("#9E9E9E", "#757575"),  # 待机灰 (ft_gui_main 规范)
+            "running": ("#2196F3", "#1976D2"),  # 进行中蓝
+            "success": ("#4CAF50", "#388E3C"),  # 完成绿 (ft_gui_main 规范)
+            "error":   ("#F44336", "#D32F2F"),  # 异常红 (ft_gui_main 规范)
         }
-        fill_c, outline_c = color_map.get(state, ("#B0BEC5", "#78909C"))
+        fill_c, outline_c = color_map.get(state, ("#9E9E9E", "#757575"))
         self.canvas.create_oval(3, 3, 19, 19, fill=fill_c, outline=outline_c, width=2)
         if text:
             self.lbl.config(text=text)
@@ -93,6 +94,7 @@ class TPMSAppGUI:
     def __init__(self, root: tk.Tk):
         self.root = root
         self.root.title("TPMS 车型分类打标与全基地数据汇总系统")
+        self.root.configure(bg="#f0f0f0")
         self.root.minsize(1120, 900)
         self.root.geometry("1180x900")
 
@@ -246,36 +248,36 @@ class TPMSAppGUI:
         except Exception:
             pass
 
-        style.configure(".", font=FONT_BASE)
-        style.configure("TLabel", font=FONT_BASE)
+        style.configure(".", font=FONT_BASE, background="#f0f0f0")
+        style.configure("TLabel", font=FONT_BASE, background="#f0f0f0")
         style.configure("TButton", font=FONT_BASE, padding=(8, 3))
-        style.configure("Accent.TButton", font=FONT_BOLD, foreground="#0D47A1", padding=(8, 3))
+        style.configure("Accent.TButton", font=FONT_BOLD, foreground="#1976D2", padding=(8, 3))
         style.configure("TEntry", font=FONT_BASE, padding=(3, 2))
         style.configure("TCombobox", font=FONT_BASE)
-        style.configure("TCheckbutton", font=FONT_BASE)
-        style.configure("TLabelframe", padding=6)
-        style.configure("TLabelframe.Label", font=FONT_BOLD, foreground="#263238")
-        style.configure("Log.TLabelframe.Label", font=FONT_BOLD, foreground="#000000")
+        style.configure("TCheckbutton", font=FONT_BASE, background="#f0f0f0")
+        style.configure("TLabelframe", padding=6, background="#f0f0f0")
+        style.configure("TLabelframe.Label", font=FONT_BOLD, foreground="#212121", background="#f0f0f0")
+        style.configure("Log.TLabelframe.Label", font=FONT_BOLD, foreground="#000000", background="#f0f0f0")
 
-        # Notebook Tab 样式
-        style.configure("TNotebook", tabmargins=[0, 2, 2, 0])
+        # Notebook Tab 样式 - 对齐 ft_gui_main.py 浅灰与清爽设计
+        style.configure("TNotebook", tabmargins=[0, 2, 2, 0], background="#f0f0f0")
         style.configure("TNotebook.Tab", font=FONT_BOLD, padding=(16, 6))
         style.map(
             "TNotebook.Tab",
-            background=[("selected", "#FFFFFF"), ("active", "#E1F5FE"), ("!selected", "#F0F4F8")],
-            foreground=[("selected", "#0D47A1"), ("active", "#1565C0"), ("!selected", "#37474F")],
+            background=[("selected", "#FFFFFF"), ("active", "#E0E0E0"), ("!selected", "#E0E0E0")],
+            foreground=[("selected", "#1976D2"), ("active", "#212121"), ("!selected", "#616161")],
         )
 
-        # Treeview 表格样式
+        # Treeview 表格样式 - 与 ft_gui_main.py 风格一致
         style.configure(
             "Treeview.Heading",
             font=FONT_BOLD,
-            background="#0D47A1",
-            foreground="#FFFFFF",
-            relief="flat"
+            background="#E0E0E0",
+            foreground="#212121",
+            relief="raised"
         )
-        style.map("Treeview.Heading", background=[("active", "#1565C0")])
-        style.configure("Treeview", font=FONT_BASE, rowheight=24)
+        style.map("Treeview.Heading", background=[("active", "#D5D5D5")])
+        style.configure("Treeview", font=FONT_BASE, rowheight=26)
 
     def _build_ui(self):
         """构建整体页面框架"""
@@ -487,7 +489,7 @@ class TPMSAppGUI:
 
         ttk.Button(f_top, text="刷新列表", command=self._refresh_preview_options, width=10).pack(side=tk.LEFT, padx=4)
 
-        self.lbl_preview_stat = ttk.Label(f_top, text="", font=FONT_BOLD, foreground="#0D47A1")
+        self.lbl_preview_stat = ttk.Label(f_top, text="", font=FONT_BOLD, foreground="#1976D2")
         self.lbl_preview_stat.pack(side=tk.RIGHT, padx=8)
 
         # Treeview 表格展示

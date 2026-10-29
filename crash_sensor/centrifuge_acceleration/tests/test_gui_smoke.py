@@ -10,6 +10,10 @@ from unittest.mock import patch
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(BASE_DIR, "data_processor"))
 
+# Unload any previously cached conflicting 'gui' from another test package
+if 'gui' in sys.modules and not hasattr(sys.modules['gui'], 'CentrifugeGUI'):
+    del sys.modules['gui']
+
 import tkinter as tk
 from gui import CentrifugeGUI
 

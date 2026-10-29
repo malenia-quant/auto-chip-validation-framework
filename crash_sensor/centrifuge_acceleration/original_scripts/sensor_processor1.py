@@ -119,17 +119,17 @@ class SensorProcessor:
                     continue
                 if not key:
                     print(f"警告：分组 key 为空，跳过该组数据")
-                    continue  # ✅ 创建分组专用文件夹
+                    continue  # [PASS] 创建分组专用文件夹
                 base_path = os.path.splitext(self.output_file)[0]  # 原文件路径（如 output_data）
                 group_folder = f"{base_path}_{key}"  # 新文件夹路径（如 output_data_21a）
                 os.makedirs(group_folder, exist_ok=True)  # 创建文件夹（若已存在则跳过）
 
-                # ✅ 生成分组 CSV 文件
+                # [PASS] 生成分组 CSV 文件
                 folder_name = os.path.basename(group_folder)  # 获取文件夹名称（如 "output_data_21a"）
                 new_output_path = os.path.join(group_folder, f"{folder_name}.csv")
                 df = pd.DataFrame(data, columns=self._get_column_names())
                 df.to_csv(new_output_path, index=False)
-                # ✅ 生成图片并保存到分组文件夹
+                # [PASS] 生成图片并保存到分组文件夹
                 self._generate_plots(df, new_output_path, key=key, group_folder=group_folder)
 
     def _get_column_names(self):
@@ -581,7 +581,7 @@ class SensorProcessor:
             decimals = [int(h, 16) for h in combined]  # 转换为整数列表
         except ValueError as e:
             print(f"第{line_num + 1}行：数据转换失败，可能包含非十六进制字符: {e}")
-            return None  # ✅ 修复1：对每个元素处理（>512则减1024）
+            return None  # [PASS] 修复1：对每个元素处理（>512则减1024）
         decimals = [x - 1024 if x > 512 else x for x in decimals]
         # 关键修改：将496替换为None（不是跳过整行！）
         decimals = [None if x == 496 else x for x in decimals]  # 496 → None
@@ -655,13 +655,13 @@ class SensorProcessor:
                 plt.ylabel('Output / LSB')
             plt.grid(True, linestyle='--', alpha=0.6)
             ax.set_xlim(left=0)
-            # ✅ 使用传递的 group_folder
+            # [PASS] 使用传递的 group_folder
             base_name = f'Step1_output_data_{col}_filtered'
             if key:
                 filename = f'{base_name}_{key}.png'
             else:
                 filename = f'{base_name}.png'
-            plot_path = os.path.join(group_folder, filename)  # ✅ 正确拼接路径
+            plot_path = os.path.join(group_folder, filename)  # [PASS] 正确拼接路径
             plt.savefig(plot_path, dpi=300, bbox_inches='tight')
             plt.close()
 
