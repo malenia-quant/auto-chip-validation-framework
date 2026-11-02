@@ -4,8 +4,18 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from configparser import ConfigParser
 import threading
-from processor.sensor_processor import SensorProcessor
-from processor.sensor_processor2 import Step2Processor
+# Add current directory to path for sibling imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    from sensor_processor1 import SensorProcessor
+    from sensor_processor2 import Step2Processor
+except ImportError:
+    try:
+        from processor.sensor_processor import SensorProcessor
+        from processor.sensor_processor2 import Step2Processor
+    except ImportError:
+        from sensor_processor import SensorProcessor
+        from sensor_processor2 import Step2Processor
 from io import TextIOBase
 from tkinter.scrolledtext import ScrolledText
 # 在SensorGUI类初始化中添加
@@ -17,7 +27,7 @@ def resource_path(relative_path):
     if getattr(sys, 'frozen', False):
         base_path = sys._MEIPASS
     else:
-        base_path = os.path.abspath("")
+        base_path = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(base_path, relative_path)
 
 
@@ -355,7 +365,13 @@ class SensorGUI:
 
     def _load_config(self):
         try:
-            self.config.read('config/settings.ini', encoding='utf-8')
+            cfg_file = resource_path('config/settings.ini')
+            if os.path.exists(cfg_file):
+                self.config.read(cfg_file, encoding='utf-8')
+            if 'DEVICE' not in self.config:
+                self.config['DEVICE'] = {'mode': 'SingleCrashSensor'}
+            if 'TDK20685' not in self.config:
+                self.config['TDK20685'] = {'Acc_Range': '16.384', 'Gyro_Range': '655.36'}
         except Exception as e:
             messagebox.showerror("配置错误", f"无法读取配置文件: {str(e)}")
 
