@@ -12,7 +12,7 @@
 crash_sensor/
 │
 ├── ft_production_test/         # 【模块 1：量产终测 FT 系统】(原 CrashSensor_FT 规范化归类)
-│   ├── core/                  # 71 项测试规格定义 (test_specs.py)、硬件抽象层与 Word/Excel 报表生成器
+│   ├── core/                  # 68 项测试规格定义 (test_specs.py)、硬件抽象层与 Word/Excel 报表生成器
 │   ├── tasks/                 # 5 大测试流 (Stream 1~7: 直流静态/协议稳态/交互/初始化时序/欠压复位)
 │   ├── ft_gui_main.py         # 产线测试台桌面交互测试软件
 │   ├── ft_master_flow.py      # 自动化测试流水线总调度主控

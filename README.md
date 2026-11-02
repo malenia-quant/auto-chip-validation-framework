@@ -46,7 +46,7 @@ auto-chip-validation-framework/
 
 | 项目目录 | 业务定位与核心覆盖 | 独立文档链接 |
 |---|---|---|
-| **`crash_sensor/ft_production_test/`** | 碰撞传感器量产终测（FT）：基于 71 项 Master Spec V21 规范，自动化执行 Stream 1-7 测试流，包含示波器波形解码与标准报表生成。 | [中文文档](file:///d:/project_momo/auto-chip-validation-framework/crash_sensor/ft_production_test/README_zh.md) \| [English](file:///d:/project_momo/auto-chip-validation-framework/crash_sensor/ft_production_test/README.md) |
+| **`crash_sensor/ft_production_test/`** | 碰撞传感器量产终测（FT）：基于 68 项 Master Spec V21 规范，自动化执行 Stream 1-7 测试流，包含示波器波形解码与标准报表生成。 | [中文文档](file:///d:/project_momo/auto-chip-validation-framework/crash_sensor/ft_production_test/README_zh.md) \| [English](file:///d:/project_momo/auto-chip-validation-framework/crash_sensor/ft_production_test/README.md) |
 | **`crash_sensor/`** | 碰撞传感器研发与标定：包含 uCut 瞬态微跌落热覆写注入（`dg5072_ucut`）、离心机加速度阶梯平台提取与 ZLG CAN-FD 数据采集。 | [中文文档](file:///d:/project_momo/auto-chip-validation-framework/crash_sensor/README_zh.md) \| [English](file:///d:/project_momo/auto-chip-validation-framework/crash_sensor/README.md) |
 | **`tpms/`** | 胎压监测系统生产与排产数据处理：三级优先级配置打标、多生产基地数据汇总及桌面应用打包。 | [中文文档](file:///d:/project_momo/auto-chip-validation-framework/tpms/README.md) \| [English](file:///d:/project_momo/auto-chip-validation-framework/tpms/README_en.md) |
 

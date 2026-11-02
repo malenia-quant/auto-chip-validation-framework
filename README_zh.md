@@ -46,7 +46,7 @@ auto-chip-validation-framework/
 
 | 业务板块 | 目录路径 | 说明 |
 |---|---|---|
-| **碰撞传感器量产终测 (FT)** | [crash_sensor/ft_production_test/](file:///d:/project_momo/auto-chip-validation-framework/crash_sensor/ft_production_test) | 71 项 Master Spec V21 全流程自动化、示波器当前采样（10.03Ω）解码判定与 Word/Excel FT 报表。 |
+| **碰撞传感器量产终测 (FT)** | [crash_sensor/ft_production_test/](file:///d:/project_momo/auto-chip-validation-framework/crash_sensor/ft_production_test) | 68 项 Master Spec V21 全流程自动化、示波器当前采样（10.03Ω）解码判定与 Word/Excel FT 报表。 |
 | **uCut 瞬态掉电复位测试** | [crash_sensor/ucut_micro_cut/](file:///d:/project_momo/auto-chip-validation-framework/crash_sensor/ucut_micro_cut) | DG5072 易失 ARB 波形无继电器热覆写注入、串口修调寄存器保持校验与 24 组 Shmoo Plot 矩阵。 |
 | **DP2031 快慢上电电源循环** | [crash_sensor/dp2031_power_cycle/](file:///d:/project_momo/auto-chip-validation-framework/crash_sensor/dp2031_power_cycle) | Rigol DP2031 控制芯片快慢上电启动建立特性、过压过流保护及 CAN FD 报文连续监控。 |
 | **离心机加速度动态标定** | [crash_sensor/centrifuge_acceleration/](file:///d:/project_momo/auto-chip-validation-framework/crash_sensor/centrifuge_acceleration) | 自适应阶梯平台提取、过渡态自动剔除、高稳态多时隙拟合灵敏度与线性度桌面软件。 |

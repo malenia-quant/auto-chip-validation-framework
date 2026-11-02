@@ -12,7 +12,7 @@ To clearly decouple production testing, micro-cut fault injection, power-cycle s
 crash_sensor/
 │
 ├── ft_production_test/         # [Module 1: FT Production Test] (Categorized from CrashSensor_FT)
-│   ├── core/                  # Master test specs (71 items), hardware layer, Word/Excel reports
+│   ├── core/                  # Master test specs (68 items), hardware layer, Word/Excel reports
 │   ├── tasks/                 # 5 Test Streams (DC static, protocol PHY, interactive, init, LVD)
 │   ├── ft_gui_main.py         # Production bench graphical test interface
 │   ├── ft_master_flow.py      # Automated pipeline orchestrator
