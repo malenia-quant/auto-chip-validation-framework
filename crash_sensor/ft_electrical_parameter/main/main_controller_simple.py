@@ -29,7 +29,32 @@ import re
 # CANFD 总线数据采集持续时间（秒），可以根据测试需求在此处任意修改该数值
 CAN_CAPTURE_DURATION_SEC = 5
 ENABLE_ZCANPRO = False  # 默认关闭 zcanpro 采集
+MOCK_MODE = True        # Mock 仿真演示模式：True 时全流程模拟机台推进测试并生成完整图表与数据（面试展示利器）
 # ==============================================================================
+
+def _generate_mock_can_csv(csv_path, dut_name):
+    """
+    Generate realistic raw CANFD packet record matching Sample 5 for pz_zero_bias.py.
+    """
+    sample_5_can = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "pz_test_data", "20260517", "5", "CAN_Record_5.csv"
+    )
+    if os.path.exists(sample_5_can):
+        shutil.copy(sample_5_can, csv_path)
+    else:
+        # Fallback generation: 700 rows of '00 00', then 8000 rows of '03 FF'
+        header = ["Timestamp", "Channel", "CAN_Type", "Direction", "ID", "Frame_Type", "Frame_Format", "DLC_Len", "Data_Hex"]
+        base_ts = 4230097313
+        rows = []
+        for i in range(700):
+            rows.append([base_ts + i * 500, "CAN0", "CANFD加速", "RX", "0x25a", "标准帧", "数据帧", 8, "00 00 FF FF FF FF FF FF"])
+        for i in range(700, 8000):
+            rows.append([base_ts + i * 500, "CAN0", "CANFD加速", "RX", "0x25a", "标准帧", "数据帧", 8, "03 FF FF FF FF FF FF FF"])
+        with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow(header)
+            writer.writerows(rows)
 
 def get_latest_csv(folder_path):
     search_pattern = os.path.join(folder_path, "CAN_Record_*.csv")
@@ -45,6 +70,14 @@ def interactive_input_with_arrows(prompt_text, default_val):
     """
     Windows-only custom input: allows using UP/DOWN arrows to increment/decrement numbers on the fly.
     """
+    if not sys.stdin.isatty():
+        sys.stdout.write(prompt_text + (default_val if default_val else "") + "\n")
+        sys.stdout.flush()
+        line = sys.stdin.readline()
+        if not line:
+            return "q"
+        line = line.strip()
+        return line if line else default_val
     sys.stdout.write(prompt_text + (default_val if default_val else ""))
     sys.stdout.flush()
     
@@ -157,6 +190,8 @@ def main():
     print(f"  1. zcanpro_canfd200u.py (CANFD {CAN_CAPTURE_DURATION_SEC}-second acquisition)")
     print("  2. sds5054.py           (Oscilloscope parameter extraction)")
     print("  3. pz_zero_bias.py      (Zero bias and fluctuation calculation)")
+    if MOCK_MODE:
+        print("  [*] MOCK MODE: Active (Seamless end-to-end execution without physical hardware)")
     print("=" * 70)
     
     python_exe = sys.executable
@@ -217,38 +252,39 @@ def main():
         # Step 1: Run zcanpro_canfd200u.py
         # -------------------------------------------------------------
         if ENABLE_ZCANPRO:
-            print(f"\n>>> [Step 1/5] Starting CANFD data capture ({CAN_CAPTURE_DURATION_SEC} seconds background run)...")
-            try:
-                # We launch the background process. Redirecting stdout/stderr to None lets the user see output
-                # in real-time, preventing pipe blocks. We pipe only stdin to send the newline stop-command.
-                canfd_proc = subprocess.Popen(
-                    [python_exe, canfd_script],
-                    stdin=subprocess.PIPE,
-                    stdout=None,
-                    stderr=None,
-                    text=True
-                )
-                
-                # Wait for capture time specified in top configuration
-                time.sleep(CAN_CAPTURE_DURATION_SEC)
-                
-                print(">>> Stopping CANFD capture cleanly by sending newline signal...")
-                if canfd_proc.poll() is None: # Still running
-                    canfd_proc.stdin.write("\n")
-                    canfd_proc.stdin.flush()
-                    
-                    # Give it a few seconds to finish its finally block cleanly
-                    try:
-                        canfd_proc.wait(timeout=10)
-                        print(" [+] CANFD process terminated cleanly.")
-                    except subprocess.TimeoutExpired:
-                        print(" [!] Warning: CANFD cleanup timed out. Force-terminating process...")
-                        canfd_proc.kill()
-                        canfd_proc.wait()
-                else:
-                    print(" [!] Warning: CANFD process terminated early before 5s elapsed.")
-            except Exception as e:
-                print(f" [!] Error during CANFD capture: {str(e)}")
+            if MOCK_MODE:
+                print(f"\n>>> [Step 1/5] [MOCK MODE] Simulating CANFD data capture ({CAN_CAPTURE_DURATION_SEC}s background run)...")
+                for remaining in range(CAN_CAPTURE_DURATION_SEC, 0, -1):
+                    sys.stdout.write(f"\r    [CANFD Sim] Capturing CAN packets... {remaining}s remaining")
+                    sys.stdout.flush()
+                    time.sleep(0.4)
+                print(f"\r    [CANFD Sim] Capture complete: 1,300 frames captured cleanly.          ")
+            else:
+                print(f"\n>>> [Step 1/5] Starting CANFD data capture ({CAN_CAPTURE_DURATION_SEC} seconds background run)...")
+                try:
+                    canfd_proc = subprocess.Popen(
+                        [python_exe, canfd_script],
+                        stdin=subprocess.PIPE,
+                        stdout=None,
+                        stderr=None,
+                        text=True
+                    )
+                    time.sleep(CAN_CAPTURE_DURATION_SEC)
+                    print(">>> Stopping CANFD capture cleanly by sending newline signal...")
+                    if canfd_proc.poll() is None:
+                        canfd_proc.stdin.write("\n")
+                        canfd_proc.stdin.flush()
+                        try:
+                            canfd_proc.wait(timeout=10)
+                            print(" [+] CANFD process terminated cleanly.")
+                        except subprocess.TimeoutExpired:
+                            print(" [!] Warning: CANFD cleanup timed out. Force-terminating process...")
+                            canfd_proc.kill()
+                            canfd_proc.wait()
+                    else:
+                        print(" [!] Warning: CANFD process terminated early before 5s elapsed.")
+                except Exception as e:
+                    print(f" [!] Error during CANFD capture: {str(e)}")
         else:
             print("\n>>> [Step 1/5] CANFD capture is DISABLED (ENABLE_ZCANPRO = False). Skipping.")
             
@@ -256,8 +292,13 @@ def main():
         # Step 2: Locate raw CSV file and move/rename it
         # -------------------------------------------------------------
         target_can_path = None
+        date_folder = time.strftime('%Y%m%d')
+        active_results_dir = os.path.join(project_root, "main", "pz_test_data", date_folder, dut_in)
+        os.makedirs(active_results_dir, exist_ok=True)
+        target_can_filename = f"CAN_Record_{dut_in}.csv"
+        target_can_path = os.path.join(active_results_dir, target_can_filename)
         
-        if ENABLE_ZCANPRO:
+        if ENABLE_ZCANPRO and not MOCK_MODE:
             print("\n>>> [Step 2/5] Locating and moving captured raw CANFD CSV...")
             latest_can_file = get_latest_csv(canfd_data_folder)
             
@@ -269,14 +310,6 @@ def main():
                     print(f" [!] Warning: CAN record {os.path.basename(latest_can_file)} was created before this test started! CAN Box might be disconnected. Skipping.")
                 else:
                     print(f" [+] Found latest raw CAN file: {os.path.basename(latest_can_file)}")
-                    
-                    date_folder = time.strftime('%Y%m%d')
-                    active_results_dir = os.path.join(project_root, "main", "pz_test_data", date_folder, dut_in)
-                    os.makedirs(active_results_dir, exist_ok=True)
-                    
-                    target_can_filename = f"CAN_Record_{dut_in}.csv"
-                    target_can_path = os.path.join(active_results_dir, target_can_filename)
-                    
                     try:
                         shutil.copy(latest_can_file, target_can_path)
                         print(f" [+] Copied & renamed CAN raw data to: {target_can_path}")
@@ -284,19 +317,23 @@ def main():
                         print(f" [!] Error copying CAN file: {str(e)}")
                         target_can_path = None
         else:
-            print("\n>>> [Step 2/5] CANFD data location skipped.")
-            date_folder = time.strftime('%Y%m%d')
-            active_results_dir = os.path.join(project_root, "main", "pz_test_data", date_folder, dut_in)
-            os.makedirs(active_results_dir, exist_ok=True)
+            if MOCK_MODE or not os.path.exists(target_can_path):
+                print(f"\n>>> [Step 2/5] [MOCK MODE] Generating synthetic CANFD raw CSV for sample: {dut_in}...")
+                _generate_mock_can_csv(target_can_path, dut_in)
+                print(f" [+] Simulated raw CAN data ready at: {target_can_path}")
+            else:
+                print("\n>>> [Step 2/5] CANFD data location skipped.")
         
-        # (Replaced above)
         # -------------------------------------------------------------
         # Step 3: Run sds5054.py CLI with --name {dut_in} and --outdir {active_results_dir}
         # -------------------------------------------------------------
         print("\n>>> [Step 3/5] Launching sds5054.py to capture oscilloscope parameters...")
+        sds_cmd = [python_exe, "-u", sds_script, "--name", dut_in, "--outdir", active_results_dir]
+        if MOCK_MODE:
+            sds_cmd.append("--mock")
         try:
             sds_res = subprocess.run(
-                [python_exe, "-u", sds_script, "--name", dut_in, "--outdir", active_results_dir],
+                sds_cmd,
                 cwd=os.path.dirname(sds_script),
                 stdout=None,
                 stderr=None
@@ -379,7 +416,8 @@ def main():
         # 自动调用 consolidate_results.py 将今日新测试的数据去重合并入主汇总表 psi5_results.csv
         try:
             consolidate_script = os.path.join(script_dir, "consolidate_results.py")
-            subprocess.run([python_exe, consolidate_script], cwd=script_dir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            parent_pz_dir = os.path.join(project_root, "main", "pz_test_data")
+            subprocess.run([python_exe, consolidate_script, "--parent_dir", parent_pz_dir], cwd=script_dir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             print(" [+] Master results Excel workbook (*.xlsx) integrated successfully.")
         except Exception as e:
             print(f" [!] Warning: Failed to run auto-consolidation: {e}")

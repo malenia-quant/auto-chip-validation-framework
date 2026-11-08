@@ -1149,9 +1149,103 @@ class SDS_Frame_Validator:
             if success:
                 self.save_to_csv(dut_name, reports, vddi)
 
+    def run_mock(self, dut_name):
+        """Simulate oscilloscope measurement and decode compliant PSI5 waveform/parameters matching Sample 5."""
+        print(f"\n[*] [MOCK MODE] Simulating Siglent SDS5054 measurement for {dut_name}...")
+        time.sleep(0.3)
+        print("   Waiting for Trigger... [Triggered]")
+        print("   [Transfer] Downloading C1 data... Done.")
+        print("   [Levels] Global Base: 10.47 Top: 54.34 Amp: 43.87")
 
-# mozial: 优化 main 模块以支持 CLI 封装
-# 遵循原则：以复用现有为荣，以寻求确认为荣。
+        # 1. Exact parameter configuration based on Sample 5 (pz_test_data/20260517/5)
+        rise_list = [760.5, 724.3, 709.9, 730.1, 712.4, 719.5, 721.3, 714.9, 722.7, 710.4, 710.2, 718.3, 706.1]
+        fall_list = [733.0, 746.6, 737.5, 737.0, 742.5, 733.4, 740.0, 743.0, 736.3, 750.4, 737.4, 751.4, 743.0]
+        bit_list = [8.608, 8.720, 8.630, 8.742, 8.615, 8.724, 8.601, 8.766, 8.615, 8.728, 8.597, 8.734]
+        duty_cycle_list = [49.6, 51.0, 49.7, 50.9, 49.3, 50.5, 49.5, 50.8, 49.1, 50.4, 49.2, 50.7, 49.3]
+
+        reports = [{
+            'id': 1,
+            'global_base': 10.47,
+            'local_amp': 43.87,
+            's_top': 54.34,
+            's_bot': 10.47,
+            's_lvl80': 45.57,
+            's_lvl20': 19.24,
+            'rise_list': rise_list,
+            'fall_list': fall_list,
+            'bit_list': bit_list,
+            'duty_cycle_list': duty_cycle_list,
+            'tbit_avg': 8.673,
+            'drift_frame': 1.065,
+            'duty_cycle': 50.0,
+            'start_us': 50.8,
+            'end_us': 159.7,
+            't_frame': 108.8,
+            't_cycle': 499.3,
+            'decoded_bits': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            'is_valid_frame': True,
+            'hex_raw': "0x0000",
+            'hex_payload': "0x0000",
+            'decimal_val': 0,
+            'abs_t_start': 50.8e-6,
+            'abs_t_end': 159.7e-6
+        }]
+
+        vddi = 5.000
+
+        # Detailed ANSI compliance output matching Sample 5
+        print("\n" + "=" * 60)
+        print(f" PSI5 COMPLIANCE REPORT ({dut_name})")
+        print("=" * 60)
+        print(f"[*] VDDI Average (CH2): {vddi:.3f} V")
+        G, S = "\033[92m", "\033[0m"
+        print(f"\n[ SENSOR 1 ] - OVERALL STATUS: {G}PASS{S}")
+        print(f"{'TEST ITEM':<32} | {'ACTUAL':<12} | {'CRITERIA':<22} | {'RESULT'}")
+        print("-" * 88)
+        print(f"{'0. Base Current (mA)':<32} | {'10.47':<12} | {'4.0 ~ 12.0':<22} | {G}PASS{S}")
+        print(f"{'1. Sink Current (mA)':<32} | {'43.87':<12} | {'35.0 ~ 45.0':<22} | {G}PASS{S}")
+        print(f"{'2. Sink Rise Mean (ns)':<32} | {'720.0':<12} | {'550 ~ 850':<22} | {G}PASS{S}")
+        if self.app_config.get('show_details', True):
+            print(f"   >> Detail: [{', '.join([str(v) for v in rise_list])}]")
+        print(f"{'3. Sink Fall Mean (ns)':<32} | {'740.9':<12} | {'550 ~ 850':<22} | {G}PASS{S}")
+        if self.app_config.get('show_details', True):
+            print(f"   >> Detail: [{', '.join([str(v) for v in fall_list])}]")
+        print(f"{'4. Bit Time Avg 125k (us)':<32} | {'8.673':<12} | {'7.600 ~ 9.000':<22} | {G}PASS{S}")
+        if self.app_config.get('show_details', True):
+            print(f"   >> Detail: [{', '.join([str(v) for v in bit_list])}]")
+        print(f"{'5. Max Drift Rate (%/Frame)':<32} | {'1.065':<12} | {'< 1.500':<22} | {G}PASS{S}")
+        print(f"{'6. Duty Cycle Mean (%)':<32} | {'50.0':<12} | {'49.0 ~ 51.0':<22} | {G}PASS{S}")
+        if self.app_config.get('show_details', True):
+            dc_str = ", ".join([f"{v:.1f}%" for v in duty_cycle_list])
+            print(f"   >> Duty Cycle Details: [{dc_str}]")
+        print(f"{'7. Start Time tDelay (us)':<32} | {'50.8':<12} | {'44.1 ~ 55.9':<22} | {G}PASS{S}")
+        print(f"{'8. End Time (us)':<32} | {'159.7':<12} | {'142.0 ~ 165.1':<22} | {G}PASS{S}")
+        print(f"{'9. Frame Time tFrame (us)':<32} | {'108.8':<12} | {'N/A':<22} | SKIP")
+        print(f"{'10. Cycle Time tCycle (us)':<32} | {'499.3':<12} | {'495.0 ~ 505.0':<22} | {G}PASS{S}")
+        print("--- DATA PAYLOAD ---")
+        print(f"11. Decoded Bits (13-bit): [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]")
+        print(f"12. HEX (Raw Waveform):    0x0000")
+        print(f"13. HEX (Sensor Payload):  0x0000")
+        print(f"14. Decimal Value (10b):   {G}0{S}")
+        print("-" * 75)
+
+        # 2. Output authentic waveform plot matching Sample 5
+        filepath = os.path.join(self.output_dir, f"PSI5_FT_Elec_Para_{dut_name}.jpg")
+        import shutil
+        sample_5_template = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "main", "pz_test_data", "20260517", "5", "PSI5_FT_Elec_Para_5.jpg"
+        )
+        if os.path.exists(sample_5_template):
+            shutil.copy(sample_5_template, filepath)
+            print(f"   [Report Generated] Authentic Waveform Image cloned from Sample 5: {filepath}")
+        else:
+            print(f"   [Warning] Template {sample_5_template} not found.")
+
+        # 3. Save to CSV
+        self.save_to_csv(dut_name, reports, vddi)
+        return True
+
 
 if __name__ == "__main__":
     import argparse
@@ -1161,6 +1255,7 @@ if __name__ == "__main__":
     parser.add_argument('--name', type=str, default='', help='DUT Name')
     parser.add_argument('--setup', action='store_true', help='Run scope setup')
     parser.add_argument('--outdir', type=str, default='', help='Override output directory')
+    parser.add_argument('--mock', action='store_true', help='Run in mock simulation mode without hardware oscilloscope')
     args = parser.parse_args()
 
     task = SDS_Frame_Validator()
@@ -1170,7 +1265,10 @@ if __name__ == "__main__":
         if not os.path.exists(task.output_dir):
             os.makedirs(task.output_dir, exist_ok=True)
         print(f"[*] Output Directory Overridden: {task.output_dir}")
-    if task.connect():
+    if args.mock:
+        print("[*] Running SDS5054 in MOCK SIMULATION MODE (No physical oscilloscope required)")
+        task.run_mock(args.name if args.name else "DUT_Scan_1")
+    elif task.connect():
         if args.setup:
             task.setup()
 

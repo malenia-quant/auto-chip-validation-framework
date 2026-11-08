@@ -286,10 +286,20 @@ def process_batch(batch_name, csv_files, parent_dir, valid_folders, header_names
         print(f" [!] Error writing master consolidated Excel for {batch_name}: {e}")
 
 
-def batch_consolidate():
-    root = tk.Tk()
-    root.withdraw()
-    parent_dir = filedialog.askdirectory(title="选择包含所有测试日期/批次的母文件夹 (如 pz_test_data)")
+def batch_consolidate(target_dir=None):
+    if not target_dir:
+        import sys
+        for idx, arg in enumerate(sys.argv):
+            if arg in ("--parent_dir", "--dir") and idx + 1 < len(sys.argv):
+                target_dir = sys.argv[idx + 1]
+                break
+
+    if target_dir and os.path.isdir(target_dir):
+        parent_dir = os.path.abspath(target_dir)
+    else:
+        root = tk.Tk()
+        root.withdraw()
+        parent_dir = filedialog.askdirectory(title="选择包含所有测试日期/批次的母文件夹 (如 pz_test_data)")
     
     if not parent_dir:
         print("未选择文件夹，程序退出。")
