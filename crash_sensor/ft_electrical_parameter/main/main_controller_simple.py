@@ -34,22 +34,22 @@ MOCK_MODE = True        # Mock 仿真演示模式：True 时全流程模拟机�
 
 def _generate_mock_can_csv(csv_path, dut_name):
     """
-    Generate realistic raw CANFD packet record matching Sample 5 for pz_zero_bias.py.
+    Generate realistic raw CANFD packet record matching Sample 17 for pz_zero_bias.py.
     """
-    sample_5_can = os.path.join(
+    sample_17_can = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
-        "pz_test_data", "20260517", "5", "CAN_Record_5.csv"
+        "pz_test_data", "20260517", "17", "CAN_Record_17.csv"
     )
-    if os.path.exists(sample_5_can):
-        shutil.copy(sample_5_can, csv_path)
+    if os.path.exists(sample_17_can):
+        shutil.copy(sample_17_can, csv_path)
     else:
-        # Fallback generation: 700 rows of '00 00', then 8000 rows of '03 FF'
+        # Fallback generation: 5002 rows of '00 00', then 4395 rows of '03 FF' matching Sample 17
         header = ["Timestamp", "Channel", "CAN_Type", "Direction", "ID", "Frame_Type", "Frame_Format", "DLC_Len", "Data_Hex"]
         base_ts = 4230097313
         rows = []
-        for i in range(700):
+        for i in range(5002):
             rows.append([base_ts + i * 500, "CAN0", "CANFD加速", "RX", "0x25a", "标准帧", "数据帧", 8, "00 00 FF FF FF FF FF FF"])
-        for i in range(700, 8000):
+        for i in range(5002, 9397):
             rows.append([base_ts + i * 500, "CAN0", "CANFD加速", "RX", "0x25a", "标准帧", "数据帧", 8, "03 FF FF FF FF FF FF FF"])
         with open(csv_path, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
@@ -259,7 +259,7 @@ def main():
                 sys.stdout.write(f"\r    [CANFD Sim] Receiving packets from PSI5 bus... {remaining}s remaining")
                 sys.stdout.flush()
                 time.sleep(0.4)
-            print(f"\r    [CANFD Sim] Capture complete: 9,292 frames successfully received.          ")
+            print(f"\r    [CANFD Sim] Capture complete: 9,397 frames successfully received.          ")
             print(">>> Stopping CANFD capture cleanly by sending newline signal...")
             print(" [+] CANFD process terminated cleanly.")
         elif ENABLE_ZCANPRO:
@@ -303,7 +303,7 @@ def main():
         
         if MOCK_MODE:
             print("\n>>> [Step 2/5] Locating and moving captured raw CANFD CSV...")
-            print(f" [+] Found latest raw CAN file from ZLG buffer: CAN_Record_5_buffer.csv (9,292 frames)")
+            print(f" [+] Found latest raw CAN file from ZLG buffer: CAN_Record_17_buffer.csv (9,397 frames)")
             _generate_mock_can_csv(target_can_path, dut_in)
             print(f" [+] Copied & renamed CAN raw data to: {target_can_path}")
         elif ENABLE_ZCANPRO:
