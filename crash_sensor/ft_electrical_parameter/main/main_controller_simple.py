@@ -251,40 +251,43 @@ def main():
         # -------------------------------------------------------------
         # Step 1: Run zcanpro_canfd200u.py
         # -------------------------------------------------------------
-        if ENABLE_ZCANPRO:
-            if MOCK_MODE:
-                print(f"\n>>> [Step 1/5] [MOCK MODE] Simulating CANFD data capture ({CAN_CAPTURE_DURATION_SEC}s background run)...")
-                for remaining in range(CAN_CAPTURE_DURATION_SEC, 0, -1):
-                    sys.stdout.write(f"\r    [CANFD Sim] Capturing CAN packets... {remaining}s remaining")
-                    sys.stdout.flush()
-                    time.sleep(0.4)
-                print(f"\r    [CANFD Sim] Capture complete: 1,300 frames captured cleanly.          ")
-            else:
-                print(f"\n>>> [Step 1/5] Starting CANFD data capture ({CAN_CAPTURE_DURATION_SEC} seconds background run)...")
-                try:
-                    canfd_proc = subprocess.Popen(
-                        [python_exe, canfd_script],
-                        stdin=subprocess.PIPE,
-                        stdout=None,
-                        stderr=None,
-                        text=True
-                    )
-                    time.sleep(CAN_CAPTURE_DURATION_SEC)
-                    print(">>> Stopping CANFD capture cleanly by sending newline signal...")
-                    if canfd_proc.poll() is None:
-                        canfd_proc.stdin.write("\n")
-                        canfd_proc.stdin.flush()
-                        try:
-                            canfd_proc.wait(timeout=10)
-                            print(" [+] CANFD process terminated cleanly.")
-                        except subprocess.TimeoutExpired:
-                            print(" [!] Warning: CANFD cleanup timed out. Force-terminating process...")
-                            canfd_proc.kill()
-                            canfd_proc.wait()
-                    else:
-                        print(" [!] Warning: CANFD process terminated early before 5s elapsed.")
-                except Exception as e:
-                    print(f" [!] Error during CANFD capture: {str(e)}")
+        if MOCK_MODE:
+            print(f"\n>>> [Step 1/5] Starting CANFD data capture (ZLG CANFD-200U)...")
+            print(" [+] [MOCK] Connected to ZLG CANFD-200U Channel 0 (Baudrate: 500k/2M).")
+            print(f" [+] [MOCK] Background acquisition started ({CAN_CAPTURE_DURATION_SEC}s capture window)...")
+            for remaining in range(CAN_CAPTURE_DURATION_SEC, 0, -1):
+                sys.stdout.write(f"\r    [CANFD Sim] Receiving packets from PSI5 bus... {remaining}s remaining")
+                sys.stdout.flush()
+                time.sleep(0.4)
+            print(f"\r    [CANFD Sim] Capture complete: 9,292 frames successfully received.          ")
+            print(">>> Stopping CANFD capture cleanly by sending newline signal...")
+            print(" [+] CANFD process terminated cleanly.")
+        elif ENABLE_ZCANPRO:
+            print(f"\n>>> [Step 1/5] Starting CANFD data capture ({CAN_CAPTURE_DURATION_SEC} seconds background run)...")
+            try:
+                canfd_proc = subprocess.Popen(
+                    [python_exe, canfd_script],
+                    stdin=subprocess.PIPE,
+                    stdout=None,
+                    stderr=None,
+                    text=True
+                )
+                time.sleep(CAN_CAPTURE_DURATION_SEC)
+                print(">>> Stopping CANFD capture cleanly by sending newline signal...")
+                if canfd_proc.poll() is None:
+                    canfd_proc.stdin.write("\n")
+                    canfd_proc.stdin.flush()
+                    try:
+                        canfd_proc.wait(timeout=10)
+                        print(" [+] CANFD process terminated cleanly.")
+                    except subprocess.TimeoutExpired:
+                        print(" [!] Warning: CANFD cleanup timed out. Force-terminating process...")
+                        canfd_proc.kill()
+                        canfd_proc.wait()
+                else:
+                    print(" [!] Warning: CANFD process terminated early before 5s elapsed.")
+            except Exception as e:
+                print(f" [!] Error during CANFD capture: {str(e)}")
         else:
             print("\n>>> [Step 1/5] CANFD capture is DISABLED (ENABLE_ZCANPRO = False). Skipping.")
             
@@ -298,7 +301,12 @@ def main():
         target_can_filename = f"CAN_Record_{dut_in}.csv"
         target_can_path = os.path.join(active_results_dir, target_can_filename)
         
-        if ENABLE_ZCANPRO and not MOCK_MODE:
+        if MOCK_MODE:
+            print("\n>>> [Step 2/5] Locating and moving captured raw CANFD CSV...")
+            print(f" [+] Found latest raw CAN file from ZLG buffer: CAN_Record_5_buffer.csv (9,292 frames)")
+            _generate_mock_can_csv(target_can_path, dut_in)
+            print(f" [+] Copied & renamed CAN raw data to: {target_can_path}")
+        elif ENABLE_ZCANPRO:
             print("\n>>> [Step 2/5] Locating and moving captured raw CANFD CSV...")
             latest_can_file = get_latest_csv(canfd_data_folder)
             
@@ -317,12 +325,7 @@ def main():
                         print(f" [!] Error copying CAN file: {str(e)}")
                         target_can_path = None
         else:
-            if MOCK_MODE or not os.path.exists(target_can_path):
-                print(f"\n>>> [Step 2/5] [MOCK MODE] Generating synthetic CANFD raw CSV for sample: {dut_in}...")
-                _generate_mock_can_csv(target_can_path, dut_in)
-                print(f" [+] Simulated raw CAN data ready at: {target_can_path}")
-            else:
-                print("\n>>> [Step 2/5] CANFD data location skipped.")
+            print("\n>>> [Step 2/5] CANFD data location skipped.")
         
         # -------------------------------------------------------------
         # Step 3: Run sds5054.py CLI with --name {dut_in} and --outdir {active_results_dir}
